@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>idk.cx</title>
+<meta name="description" content="idk.cx — a development group at Adelaide University. We build cyber experiences to have fun with: Hack the Mainframe and Operation PowerOUT.">
+<style>
+  :root {
+    --bg: #101315; --panel: #171C1F; --ink: #E9ECEA; --ink-2: #98A5A8; --hair: #2A3236; --accent: #7CC4C7;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg: #F3F2ED; --panel: #FFFFFF; --ink: #15191B; --ink-2: #5E6A6E; --hair: #D6D9D3; --accent: #1E6E71; }
+  }
+  :root[data-theme="light"] { --bg: #F3F2ED; --panel: #FFFFFF; --ink: #15191B; --ink-2: #5E6A6E; --hair: #D6D9D3; --accent: #1E6E71; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.42; -webkit-font-smoothing: antialiased; font-size: 13px; min-height: 100vh; display: grid; align-content: safe center; }
+  a { color: inherit; }
+  .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 12px 28px; }
+
+  header { padding: 0 0 14px; border-bottom: 1px solid var(--hair); }
+  .crt { position: relative; background: #061014; border: 1px solid #1E3238; border-radius: 10px; overflow: hidden; font-family: var(--mono); box-shadow: 0 0 0 1px rgba(124,196,199,.06), 0 0 40px rgba(124,196,199,.08) inset; }
+  .crt .bar { display: flex; align-items: center; gap: 6px; padding: 7px 10px; background: #0E1B20; border-bottom: 1px solid #1E3238; }
+  .crt .bar i { width: 9px; height: 9px; border-radius: 50%; display: block; }
+  .crt .bar i:nth-child(1) { background: #E06C6C; } .crt .bar i:nth-child(2) { background: #E0A458; } .crt .bar i:nth-child(3) { background: #7CC4C7; }
+  .crt .bar .ttl { margin-left: 8px; font-size: .72rem; color: #6F8A90; letter-spacing: .04em; }
+  .crt .screen { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 10px 16px 12px; color: #9FE3E6; text-shadow: 0 0 6px rgba(124,196,199,.55), 0 0 1px rgba(124,196,199,.9); }
+  .crt .l { font-size: 1.1rem; letter-spacing: -.02em; line-height: 1.5; white-space: nowrap; }
+  .crt .l.dim { font-size: .88rem; color: #6FA9AD; text-shadow: 0 0 4px rgba(124,196,199,.35); margin-top: 2px; }
+  .crt .prompt { color: #5E8A8E; margin-right: 6px; }
+  .crt .name { margin-left: 8px; color: #D9F4F5; }
+  .crt .name b { color: #7CC4C7; }
+  .crt .cur { display: inline-block; width: .55em; height: 1em; background: #9FE3E6; vertical-align: -.12em; margin-left: 6px; animation: blink 1s steps(1) infinite; box-shadow: 0 0 6px rgba(124,196,199,.7); }
+  @keyframes blink { 50% { opacity: 0; } }
+  .crt .uni img { height: 38px; width: auto; display: block; filter: drop-shadow(0 0 4px rgba(124,196,199,.45)); opacity: .95; }
+  .crt .scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+  .crt::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.35) 100%); }
+  @media (max-width: 720px) { .crt .screen { flex-direction: column; align-items: flex-start; } .crt .l { white-space: normal; font-size: 1rem; } }
+  /* every section is a window */
+  .win { position: relative; background: #0A1418; border: 1px solid #1E3238; border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 1px rgba(124,196,199,.05); margin-top: 8px; }
+  .win .bar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #0E1B20; border-bottom: 1px solid #1E3238; font-family: var(--mono); }
+  .win .bar i { width: 8px; height: 8px; border-radius: 50%; display: block; background: #2C3D43; }
+  .win .bar .ttl { margin-left: 6px; font-size: .7rem; color: #6F8A90; letter-spacing: .04em; }
+  .win .body { padding: 10px 14px 12px; position: relative; }
+  .win.collapsed .body, .win.collapsed .scan { display: none; }
+  .win .bar { cursor: pointer; user-select: none; }
+  .win .bar .tog { margin-left: auto; font-size: .7rem; color: #6F8A90; }
+  .win.collapsed .bar .tog { transform: rotate(-90deg); }
+  .win .scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+  .win .cmd { font-family: var(--mono); font-size: .8rem; color: #6FA9AD; margin: 0 0 10px; }
+  .win .cmd::before { content: "$ "; color: #5E8A8E; }
+  .intro { padding: 0; border-bottom: 0; }
+  .intro h1 .cx { font-weight: inherit; color: var(--accent); }
+  .intro h1 { font-size: 1.35rem; line-height: 1.25; letter-spacing: -.015em; margin: 0 0 10px; font-weight: 600; }
+  .intro .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .intro p { margin: 0 0 6px; color: var(--ink-2); font-size: .92rem; line-height: 1.45; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .lbl { display: none; }
+
+  .exp { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding: 0; align-items: start; }
+  .xp { display: grid; grid-template-columns: 1fr; grid-template-rows: 200px auto; gap: 8px; align-content: start; }
+  .xp .media { display: block; width: 100%; height: 200px; background: #0B1517 center / cover no-repeat; position: relative; border: 1px solid var(--hair); cursor: zoom-in; }
+  .xp img[data-full], .xp .media[data-full] { cursor: zoom-in; }
+  /* lightbox */
+  dialog.lb { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 96vh; }
+  dialog.lb::backdrop { background: rgba(0,0,0,.82); }
+  dialog.lb img { display: block; max-width: 96vw; max-height: 92vh; width: auto; height: auto; border: 1px solid var(--hair); background: #0B1517; }
+  dialog.lb figcaption { font-family: var(--mono); font-size: .8rem; color: #E9ECEA; padding: 8px 0 0; text-align: center; }
+  .xp .media.htm { background-image: url("images/hack-the-mainframe.png"); }
+  .xp .media.pwr { background-image: url("images/wireframes/dashboard.png"); }
+  .xp .wires { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .xp .wires figure { margin: 0; }
+  .xp .wires img { display: block; width: 100%; height: 70px; object-fit: cover; border: 1px solid var(--hair); background: #0B1517; }
+  .xp .wires figcaption { font-size: .74rem; color: var(--ink-2); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .xp .media .lbl2 { position: absolute; left: 10px; top: 10px; font-family: var(--mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; background: var(--accent); color: #0B1517; padding: 4px 8px; border-radius: 3px; }
+  .xp .media .lbl2.soon { background: #E0A458; color: #1A1206; }
+  .xp h3 { margin: 0 0 6px; font-size: 1.1rem; font-weight: 600; }
+  .xp .powered { font-family: var(--mono); font-size: .72rem; color: #6FA9AD; margin: -4px 0 8px; letter-spacing: .04em; }
+  .xp p { margin: 0 0 8px; color: var(--ink-2); font-size: .9rem; line-height: 1.5; }
+  .xp p:last-of-type { margin-bottom: 0; }
+  .xp .thumb { margin: 14px 0 0; display: block; }
+  .xp .thumb img { width: 100%; height: 70px; object-fit: cover; object-position: center 60%; display: block; border: 1px solid var(--hair); }
+  .xp .thumb span { display: block; font-size: .78rem; color: var(--ink-2); margin-top: 4px; }
+  .xp .draft { font-family: var(--mono); font-size: .68rem; color: var(--ink-2); display: block; margin-top: 6px; }
+
+  .bottom { display: grid; grid-template-columns: 6fr 3fr 3fr; gap: 14px; padding: 0; align-items: start; }
+  .bottom .win { margin-top: 14px; }
+  .events .soon { display: inline-block; font-family: var(--mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; background: #E0A458; color: #1A1206; padding: 4px 8px; border-radius: 3px; }
+  .events p { margin: 0 0 8px; font-size: .95rem; color: var(--ink-2); }
+  .people { list-style: none; margin: 0; padding: 0; }
+  .groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .people { margin: 0; }
+  .grp { font-family: var(--mono); font-size: .72rem; color: #6FA9AD; margin: 0 0 2px; white-space: nowrap; }
+  .people li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-top: 1px solid var(--hair); font-size: .9rem; }
+  .people li:first-child { border-top: 0; padding-top: 0; }
+  .people i { font-style: normal; color: var(--ink-2); margin-left: 8px; font-size: .88rem; }
+  .people a { font-size: .8rem; color: var(--accent); text-decoration: none; }
+  .people a:hover { text-decoration: underline; }
+  #contact .todo { font-size: .9rem; color: var(--ink-2); margin: 0; }
+
+  footer { padding: 8px 0 0; border-top: 0; font-family: var(--mono); font-size: .78rem; color: var(--ink-2); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 20px; }
+
+  @media (max-width: 860px) {
+    .exp, .bottom, .groups { grid-template-columns: 1fr; }
+    .intro .cols { grid-template-columns: 1fr; gap: 12px; }
+    .xp { grid-template-columns: 1fr; grid-template-rows: 240px auto; }
+    .xp .media { height: 240px; }
+    header nav a { margin-left: 12px; }
+    .wrap { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="crt" role="img" aria-label="idk.cyber experiences — a development group at Adelaide University">
+      <div class="bar"><i></i><i></i><i></i><span class="ttl">idk.cx — bash</span></div>
+      <div class="screen">
+        <div class="lines">
+          <div class="l"><span class="prompt">$</span> ¯\_(ツ)_/¯ <span class="name"><b>idk</b>.<b>c</b>yber e<b>x</b>periences</span><span class="cur"></span></div>
+          <div class="l dim"><span class="prompt">#</span> A development group at Adelaide University</div>
+        </div>
+        <a class="uni" href="https://www.adelaide.edu.au/" rel="noopener"><img src="images/adelaide-university-logo.svg" alt="Adelaide University"></a>
+      </div>
+      <div class="scan" aria-hidden="true"></div>
+    </div>
+  </header>
+
+  <section class="intro win">
+    <div class="bar"><i></i><i></i><i></i><span class="ttl">~/about</span><span class="tog" aria-hidden="true">▾</span></div>
+    <div class="body">
+    <p class="cmd">cat about.txt</p>
+    <h1>We build <b class="cx">c</b>yber e<b class="cx">x</b>periences to have fun with, I guess.</h1>
+    <div class="cols">
+        <div>
+          <p>idk is a small development group founded by Adelaide University Networking &amp; Cyber Lecturers Joel Dellar &amp; Ellie Parker.</p>
+          <p>We develop bespoke cybersecurity activities that can be fun to those of all ages by abstracting away technical complexities and replacing them with gamified interfaces. Our workshops are geared to High School Students in years 9-12, but can be enjoyed by those of all ages.</p>
+        </div>
+        <div>
+          <p>We also intend to develop realistic Red Team / Blue Team scenarios using Adelaide Universities own Cyber Range, the CyberLab.</p>
+          <p>Analytics collected during the activities is intended to be used in future research data. No analytical data is currently being collected.</p>
+        </div>
+      </div>
+    </div>
+    <div class="scan" aria-hidden="true"></div>
+  </section>
+
+  <section id="play" class="win">
+    <div class="bar"><i></i><i></i><i></i><span class="ttl">~/experiences</span><span class="tog" aria-hidden="true">▾</span></div>
+    <div class="body">
+    <p class="cmd">ls experiences/</p>
+    <div class="exp">
+      <article class="xp">
+        <div class="media htm" role="img" aria-label="Hack the Mainframe title graphic" data-full="images/hack-the-mainframe.png" data-cap="Hack the Mainframe"><span class="lbl2">running</span></div>
+        <div>
+          <h3>Hack the Mainframe</h3>
+          <p>A CyberSecurity Escape Room. Hacking Group "nAiSU" has tasked you with breaking into Vault 101 at UniBank.</p>
+          <p>Your team has broke into the building, and into the office of Network Engineer Christopher Wallace. Can you get onto Chris' Laptop, and find a way to turn off UniBank's Protection System?</p>
+          <div class="thumb"><img src="images/desk.png" alt="The network engineer's desk: a laptop, a switch, patch leads, a pinboard and a calendar." loading="lazy" data-full="images/desk.png" data-cap="the network engineer's office - spot where the laptop password is"><span>the network engineer's office - spot where the laptop password is</span></div>
+        </div>
+      </article>
+      <article class="xp">
+        <div class="media pwr" role="img" aria-label="Operation PowerOUT dashboard wireframe" data-full="images/wireframes/dashboard.png" data-cap="Operation PowerOUT — dashboard wireframe"><span class="lbl2 soon">coming soon</span></div>
+        <div>
+          <h3>Operation PowerOUT</h3>
+          <p class="powered">Powered by the CyberLab</p>
+          <p>You work as a Cyber Specialist for an IT Solutions Organisation that is about to run out of business. You have one last hope - getting the support contract of "UniBank", who are upping their internal security policies after a recent break in.</p>
+          <p>The issue: other IT Solutions Organisations are also competing for the contract. Your goal is to hack into the other Organisations, and shut off their data centre, so your organisation is seen as the best candidate.</p>
+          <div class="wires">
+            <figure><img src="images/wireframes/phishing-receive.png" alt="Wireframe: receiving phishing emails" loading="lazy" data-full="images/wireframes/phishing-receive.png" data-cap="wireframe — receiving phishing emails"><figcaption>phishing: receive</figcaption></figure>
+            <figure><img src="images/wireframes/phishing-send.png" alt="Wireframe: sending phishing emails" loading="lazy" data-full="images/wireframes/phishing-send.png" data-cap="wireframe — sending phishing emails"><figcaption>phishing: send</figcaption></figure>
+            <figure><img src="images/wireframes/binary-decimal.png" alt="Wireframe: binary to decimal conversion" loading="lazy" data-full="images/wireframes/binary-decimal.png" data-cap="wireframe — binary ↔ decimal"><figcaption>binary ↔ decimal</figcaption></figure>
+            <figure><img src="images/wireframes/subnet-recon.png" alt="Wireframe: subnet recon" loading="lazy" data-full="images/wireframes/subnet-recon.png" data-cap="wireframe — subnet recon"><figcaption>subnet recon</figcaption></figure>
+          </div>
+        </div>
+      </article>
+    </div>
+    </div>
+    <div class="scan" aria-hidden="true"></div>
+  </section>
+
+  <section class="bottom">
+    <div id="who" class="win">
+      <div class="bar"><i></i><i></i><i></i><span class="ttl">~/people</span><span class="tog" aria-hidden="true">▾</span></div>
+      <div class="body">
+      <p class="cmd">who</p>
+      <div class="groups">
+      <div><p class="grp"># founders</p>
+      <ul class="people">
+        <li><span>Joel Dellar</span><a href="https://www.linkedin.com/in/joeldellar/" rel="noopener">linkedin</a></li>
+        <li><span>Ellie Parker</span><a href="https://www.linkedin.com/in/eleanor-b-parker/" rel="noopener">linkedin</a></li>
+      </ul></div>
+      <div><p class="grp"># interns · powerout</p>
+      <ul class="people">
+        <li><span>Daniel Hoffmann</span><a href="https://www.linkedin.com/in/daniel-hoffmann-830961306/" rel="noopener">linkedin</a></li>
+        <li><span>Nicholas Tatlian</span><a href="https://www.linkedin.com/in/nicholas-tatlian-064028355/" rel="noopener">linkedin</a></li>
+      </ul></div>
+      <div><p class="grp"># alumni</p>
+      <ul class="people">
+        <li><span>Henry Ponte</span><a href="https://www.linkedin.com/in/henry-ponte/" rel="noopener">linkedin</a></li>
+        <li><span>Riordan Cassidy</span><a href="https://www.linkedin.com/in/riordan-cassidy-82683924a/" rel="noopener">linkedin</a></li>
+      </ul></div>
+      </div>
+      </div>
+      <div class="scan" aria-hidden="true"></div>
+    </div>
+    <div id="events" class="events win">
+      <div class="bar"><i></i><i></i><i></i><span class="ttl">~/events</span><span class="tog" aria-hidden="true">▾</span></div>
+      <div class="body">
+      <p class="cmd">cal</p>
+      <span class="soon">coming soon…</span>
+      </div>
+      <div class="scan" aria-hidden="true"></div>
+    </div>
+    <div id="contact" class="win">
+      <div class="bar"><i></i><i></i><i></i><span class="ttl">~/say-hello</span><span class="tog" aria-hidden="true">▾</span></div>
+      <div class="body">
+      <p class="cmd">mail</p>
+      <p class="todo">contact address goes here</p>
+      </div>
+      <div class="scan" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>idk.cx · cyber experiences</span>
+    <span>Joel Dellar &amp; Ellie Parker · Adelaide University</span>
+  </footer>
+</div>
+<dialog class="lb" id="lb" aria-label="Image"><figure style="margin:0"><img id="lb-img" alt=""><figcaption id="lb-cap"></figcaption></figure></dialog>
+<script>
+  (function () {
+    var lb = document.getElementById('lb'), img = document.getElementById('lb-img'), cap = document.getElementById('lb-cap');
+    if (!lb || typeof lb.showModal !== 'function') return;
+    document.querySelectorAll('[data-full]').forEach(function (el) {
+      el.setAttribute('tabindex', '0'); el.setAttribute('role', el.tagName === 'IMG' ? 'button' : el.getAttribute('role') || 'button');
+      function open() { img.src = el.getAttribute('data-full'); img.alt = el.getAttribute('data-cap') || ''; cap.textContent = el.getAttribute('data-cap') || ''; lb.showModal(); }
+      el.addEventListener('click', open);
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    });
+    lb.addEventListener('click', function () { lb.close(); });
+    lb.addEventListener('close', function () { img.removeAttribute('src'); });
+  })();
+  (function () {
+    var key = 'idkcx.collapsed';
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) { saved = {}; }
+    document.querySelectorAll('.win').forEach(function (w) {
+      var bar = w.querySelector('.bar'); if (!bar) return;
+      var id = w.id || (w.querySelector('.ttl') || {}).textContent || '';
+      if (saved[id]) w.classList.add('collapsed');
+      bar.setAttribute('role', 'button'); bar.setAttribute('tabindex', '0');
+      function toggle() {
+        w.classList.toggle('collapsed');
+        saved[id] = w.classList.contains('collapsed');
+        try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) {}
+      }
+      bar.addEventListener('click', toggle);
+      bar.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    });
+  })();
+</script>
+</body>
+</html>
